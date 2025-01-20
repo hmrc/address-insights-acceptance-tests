@@ -16,8 +16,9 @@
 
 package uk.gov.hmrc.api.client
 
-import akka.actor.ActorSystem
-import play.api.libs.ws.DefaultBodyWritables._
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.Materializer
+import play.api.libs.ws.DefaultBodyWritables.*
 import play.api.libs.ws.{DefaultWSProxyServer, StandaloneWSRequest}
 import play.api.libs.ws.ahc.StandaloneAhcWSClient
 
@@ -26,9 +27,10 @@ import scala.concurrent.{ExecutionContext, Future}
 trait HttpClient {
 
   implicit val actorSystem: ActorSystem = ActorSystem()
-  val wsClient: StandaloneAhcWSClient   = StandaloneAhcWSClient()
   implicit val ec: ExecutionContext     = ExecutionContext.global
-  lazy val shouldProxyForZap: Boolean   = sys.props.get("security.assessment").exists(_.toBoolean)
+
+  val wsClient: StandaloneAhcWSClient = StandaloneAhcWSClient()
+  lazy val shouldProxyForZap: Boolean = sys.props.get("security.assessment").exists(_.toBoolean)
 
   def standAloneWsRequestWithProxyIfConfigSet(standAloneWsRequest: StandaloneWSRequest): StandaloneWSRequest =
     if (shouldProxyForZap) {
@@ -39,17 +41,17 @@ trait HttpClient {
       standAloneWsRequest
     }
 
-  def get(url: String, headers: (String, String)*): Future[StandaloneWSRequest#Self#Response] =
+  def get(url: String, headers: (String, String)*): Future[StandaloneWSRequest#Response] =
     standAloneWsRequestWithProxyIfConfigSet(wsClient.url(url))
       .withHttpHeaders(headers: _*)
       .get()
 
-  def post(url: String, bodyAsJson: String, headers: (String, String)*): Future[StandaloneWSRequest#Self#Response] =
+  def post(url: String, bodyAsJson: String, headers: (String, String)*): Future[StandaloneWSRequest#Response] =
     standAloneWsRequestWithProxyIfConfigSet(wsClient.url(url))
       .withHttpHeaders(headers: _*)
       .post(bodyAsJson)
 
-  def delete(url: String, headers: (String, String)*): Future[StandaloneWSRequest#Self#Response] =
+  def delete(url: String, headers: (String, String)*): Future[StandaloneWSRequest#Response] =
     standAloneWsRequestWithProxyIfConfigSet(wsClient.url(url))
       .withHttpHeaders(headers: _*)
       .delete()
