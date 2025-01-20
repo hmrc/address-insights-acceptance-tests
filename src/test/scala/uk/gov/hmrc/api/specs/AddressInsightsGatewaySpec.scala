@@ -22,8 +22,11 @@ import uk.gov.hmrc.api.client.HttpClient
 
 import scala.concurrent.Await
 import scala.concurrent.duration.*
+import uk.gov.hmrc.api.conf.TestEnvironment
 
 class AddressInsightsGatewaySpec extends BaseSpec with HttpClient with WireMockTrait {
+  private val addressGatewayUrl = TestEnvironment.url("address-gateway")
+
 
   val addressGatewayUserAgent = "address-gateway"
 
@@ -44,7 +47,7 @@ class AddressInsightsGatewaySpec extends BaseSpec with HttpClient with WireMockT
       val actualResponseMaybe =
         Await.result(
           post(
-            "http://localhost:9964/address-gateway/reputation/sa-reg",
+            addressGatewayUrl + "/reputation/sa-reg",
             requestedAddress,
             HttpHeaderNames.CONTENT_TYPE.toString -> "application/json",
             HttpHeaderNames.USER_AGENT.toString   -> addressGatewayUserAgent
@@ -88,7 +91,7 @@ class AddressInsightsGatewaySpec extends BaseSpec with HttpClient with WireMockT
       val actualResponse =
         Await.result(
           post(
-            "http://localhost:9964/address-gateway/cache",
+            addressGatewayUrl + "/cache/sa-reg",
             cacheAddress,
             HttpHeaderNames.CONTENT_TYPE.toString -> "application/json",
             HttpHeaderNames.USER_AGENT.toString   -> addressGatewayUserAgent
@@ -101,18 +104,10 @@ class AddressInsightsGatewaySpec extends BaseSpec with HttpClient with WireMockT
 
     Scenario("Get insights for an address that is also in the cache") {
       When("I use the address insights api to get insights for a matching address")
-      val requestedAddress =
-        """{ "address": {
-          | "addressLine1": "30-31",
-          | "postcode": "BN2 1QB",
-          | "country": "GB"
-          |}
-          |}""".stripMargin
-
       val actualResponseMaybe =
         Await.result(
           post(
-            "http://localhost:9964/address-gateway/reputation/sa-reg",
+            addressGatewayUrl + "/reputation/sa-reg",
             requestedAddress,
             HttpHeaderNames.CONTENT_TYPE.toString -> "application/json",
             HttpHeaderNames.USER_AGENT.toString   -> addressGatewayUserAgent
