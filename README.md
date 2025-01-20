@@ -1,8 +1,6 @@
-**This is the template README. Please update this with project specific content.**
-
 # address-insights-acceptance-tests
 
-<SERVICE_NAME> API tests.
+`address-insights` API tests.
 
 ## Pre-requisites
 
@@ -14,10 +12,10 @@ Start Mongo Docker container as follows:
 docker run --rm -d -p 27017:27017 --name mongo percona/percona-server-mongodb:5.0
 ```
 
-Start `<SERVICE_MANAGER_PROFILE>` services as follows:
+Start `ADDRESS_INSIGHTS_SERVICES` services as follows:
 
 ```bash
-sm2 --start <SERVICE_MANAGER_PROFILE>
+sm2 --start ADDRESS_INSIGHTS_SERVICES
 ```
 
 ## Tests
