@@ -27,7 +27,6 @@ import uk.gov.hmrc.api.conf.TestEnvironment
 class AddressInsightsGatewaySpec extends BaseSpec with HttpClient with WireMockTrait {
   private val addressGatewayUrl = TestEnvironment.url("address-gateway")
 
-
   val addressGatewayUserAgent = "address-gateway"
 
   val requestedAddress: String =
@@ -91,7 +90,7 @@ class AddressInsightsGatewaySpec extends BaseSpec with HttpClient with WireMockT
       val actualResponse =
         Await.result(
           post(
-            addressGatewayUrl + "/cache/sa-reg",
+            addressGatewayUrl + "/cache",
             cacheAddress,
             HttpHeaderNames.CONTENT_TYPE.toString -> "application/json",
             HttpHeaderNames.USER_AGENT.toString   -> addressGatewayUserAgent
