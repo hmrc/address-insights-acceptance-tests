@@ -81,10 +81,11 @@ class AddressInsightsGatewaySpec extends BaseSpec with HttpClient with WireMockT
       When("I use the address insights cache api")
       val cacheAddress =
         """{ "address": {
-          | "addressLine1": "30-31",
-          | "postcode": "BN2 1QB",
-          | "country": "GB"
-          |}
+          |     "addressLine1": "30-31",
+          |     "postcode": "BN2 1QB",
+          |     "country": "GB"
+          |  },
+          |  "saRegAddressIdentifier": "1234567890"
           |}""".stripMargin
 
       val actualResponse =
