@@ -85,7 +85,7 @@ class AddressInsightsGatewaySpec extends BaseSpec with HttpClient with WireMockT
           |     "postcode": "BN2 1QB",
           |     "country": "GB"
           |  },
-          |  "saRegAddressIdentifier": "1234567890"
+          |  "caseId": "1234567890"
           |}""".stripMargin
 
       val actualResponse =
@@ -131,7 +131,7 @@ class AddressInsightsGatewaySpec extends BaseSpec with HttpClient with WireMockT
       val insightsNode = bodyJson \ "insights" \ "relationships" \ "occurrences"
       (insightsNode \ "byUprn" \ "count").as[Int]        shouldBe 0
       (insightsNode \ "byLocationRef" \ "count").as[Int] shouldBe 2
-      (insightsNode \ "byPostCode" \ "count").as[Int]    shouldBe 9
+      (insightsNode \ "byPostCode" \ "count").as[Int]    shouldBe 10
     }
   }
 }
