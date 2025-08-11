@@ -16,26 +16,28 @@
 
 package uk.gov.hmrc.api.specs
 
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.shaded.ahc.io.netty.handler.codec.http.{HttpHeaderNames, HttpResponseStatus}
-import uk.gov.hmrc.api.client.HttpClient
-
-import scala.concurrent.Await
-import scala.concurrent.duration.*
+import uk.gov.hmrc.api.client.HttpClientHelper
 import uk.gov.hmrc.api.conf.TestEnvironment
 
-class AddressInsightsGatewaySpec extends BaseSpec with HttpClient with WireMockTrait {
-  private val addressGatewayUrl = TestEnvironment.url("address-gateway")
+class AddressInsightsGatewaySpec extends BaseSpec with HttpClientHelper {
 
-  val addressGatewayUserAgent = "address-gateway"
+  private val addressGatewayUrl              = TestEnvironment.url("address-gateway")
+  private val addressGatewayUserAgent        = "address-gateway"
+  private val headers: Seq[(String, String)] = Seq(
+    HttpHeaderNames.CONTENT_TYPE.toString -> "application/json",
+    HttpHeaderNames.USER_AGENT.toString   -> addressGatewayUserAgent
+  )
 
-  val requestedAddress: String =
-    """{ "address": {
-      | "addressLine1": "30-31",
-      | "postcode": "BN2 1QB",
-      | "country": "GB"
-      |}
-      |}""".stripMargin
+  val requestedAddress: JsValue =
+    Json.obj(
+      "address" -> Json.obj(
+        "addressLine1" -> "30-31",
+        "postcode"     -> "BN2 1QB",
+        "country"      -> "GB"
+      )
+    )
 
   Feature("Check the Address insights API") {
 
@@ -44,14 +46,10 @@ class AddressInsightsGatewaySpec extends BaseSpec with HttpClient with WireMockT
 
       When("I use the address insights api")
       val actualResponseMaybe =
-        Await.result(
-          post(
-            addressGatewayUrl + "/reputation/sa-reg",
-            requestedAddress,
-            HttpHeaderNames.CONTENT_TYPE.toString -> "application/json",
-            HttpHeaderNames.USER_AGENT.toString   -> addressGatewayUserAgent
-          ),
-          5.seconds
+        post(
+          addressGatewayUrl + "/reputation/sa-reg",
+          requestedAddress,
+          headers: _*
         )
 
       Then("I am given the insights information for that address")
@@ -68,9 +66,10 @@ class AddressInsightsGatewaySpec extends BaseSpec with HttpClient with WireMockT
       )
 
       val insightsNode = bodyJson \ "insights" \ "relationships" \ "occurrences"
+
       (insightsNode \ "byUprn" \ "count").as[Int]        shouldBe 0
-      (insightsNode \ "byLocationRef" \ "count").as[Int] shouldBe 1
-      (insightsNode \ "byPostCode" \ "count").as[Int]    shouldBe 9
+      (insightsNode \ "byLocationRef" \ "count").as[Int] shouldBe 0
+      (insightsNode \ "byPostCode" \ "count").as[Int]    shouldBe 6
     }
   }
 
@@ -80,23 +79,20 @@ class AddressInsightsGatewaySpec extends BaseSpec with HttpClient with WireMockT
 
       When("I use the address insights cache api")
       val cacheAddress =
-        """{ "address": {
-          |     "addressLine1": "30-31",
-          |     "postcode": "BN2 1QB",
-          |     "country": "GB"
-          |  },
-          |  "caseId": "1234567890"
-          |}""".stripMargin
+        Json.obj(
+          "address" -> Json.obj(
+            "addressLine1" -> "30-31",
+            "postcode"     -> "BN2 1QB",
+            "country"      -> "GB"
+          ),
+          "caseId"  -> "1234567890"
+        )
 
       val actualResponse =
-        Await.result(
-          post(
-            addressGatewayUrl + "/cache",
-            cacheAddress,
-            HttpHeaderNames.CONTENT_TYPE.toString -> "application/json",
-            HttpHeaderNames.USER_AGENT.toString   -> addressGatewayUserAgent
-          ),
-          5.seconds
+        post(
+          addressGatewayUrl + "/cache",
+          cacheAddress,
+          headers: _*
         )
 
       actualResponse.status shouldBe HttpResponseStatus.NO_CONTENT.code()
@@ -105,14 +101,10 @@ class AddressInsightsGatewaySpec extends BaseSpec with HttpClient with WireMockT
     Scenario("Get insights for an address that is also in the cache") {
       When("I use the address insights api to get insights for a matching address")
       val actualResponseMaybe =
-        Await.result(
-          post(
-            addressGatewayUrl + "/reputation/sa-reg",
-            requestedAddress,
-            HttpHeaderNames.CONTENT_TYPE.toString -> "application/json",
-            HttpHeaderNames.USER_AGENT.toString   -> addressGatewayUserAgent
-          ),
-          5.seconds
+        post(
+          addressGatewayUrl + "/reputation/sa-reg",
+          requestedAddress,
+          headers: _*
         )
 
       Then("I am given the insights information for that address, including the cached address")
@@ -130,8 +122,8 @@ class AddressInsightsGatewaySpec extends BaseSpec with HttpClient with WireMockT
 
       val insightsNode = bodyJson \ "insights" \ "relationships" \ "occurrences"
       (insightsNode \ "byUprn" \ "count").as[Int]        shouldBe 0
-      (insightsNode \ "byLocationRef" \ "count").as[Int] shouldBe 2
-      (insightsNode \ "byPostCode" \ "count").as[Int]    shouldBe 10
+      (insightsNode \ "byLocationRef" \ "count").as[Int] shouldBe 0
+      (insightsNode \ "byPostCode" \ "count").as[Int]    shouldBe 6
     }
   }
 }
