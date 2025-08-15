@@ -36,7 +36,8 @@ class AddressInsightsGatewaySpec extends BaseSpec with HttpClientHelper {
         "addressLine1" -> "30-31",
         "postcode"     -> "BN2 1QB",
         "country"      -> "GB"
-      )
+      ),
+      "caseId"  -> "testCaseId"
     )
 
   Feature("Check the Address insights API") {
@@ -70,6 +71,8 @@ class AddressInsightsGatewaySpec extends BaseSpec with HttpClientHelper {
       (insightsNode \ "byUprn" \ "count").as[Int]        shouldBe 0
       (insightsNode \ "byLocationRef" \ "count").as[Int] shouldBe 0
       (insightsNode \ "byPostCode" \ "count").as[Int]    shouldBe 6
+
+      (bodyJson \ "caseId").as[String] shouldBe "testCaseId"
     }
   }
 
